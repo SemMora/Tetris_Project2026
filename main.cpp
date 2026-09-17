@@ -1,25 +1,20 @@
 #include "raylib.h"
+#include "Constantes.h"
 
-int main(void)
-{
-	const int screenWidth = 800;
-	const int screenHeight = 450;
-	InitWindow(screenWidth, screenHeight, "Ejemplo Basico Raylib 4.0.0");dioo
-	
+int main() {
+	InitWindow(ANCHO_VENTANA, ALTO_VENTANA, "Tetris");
 	SetTargetFPS(60);
 	
-	while (!WindowShouldClose()) 
-	{
+	while (!WindowShouldClose()) {
 		BeginDrawing();
-		ClearBackground(RAYWHITE);
+		ClearBackground(BLACK);
 		
-		DrawText("Hola, esto es raylib 4.0.0!", 190, 200, 20, LIGHTGRAY);
-		DrawCircle(screenWidth / 2, screenHeight / 2 - 40, 50, MAROON);
+		DrawText("TETRIS", 20, 20, 30, WHITE);
+		DrawRectangleLines(MARGEN_X, MARGEN_Y, COLUMNAS * TAM_CELDA, FILAS * TAM_CELDA, GRAY);
 		
 		EndDrawing();
 	}
 	
 	CloseWindow();
-	
 	return 0;
 }
