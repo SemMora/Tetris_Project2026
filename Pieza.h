@@ -4,22 +4,17 @@
 // Tipos de pieza: I=0, O=1, T=2, S=3, Z=4, J=5, L=6
 const int CANT_TIPOS = 7;
 
-// Pieza que el jugador controla
 struct Pieza {
-	int tipo;      // 0 a 6
-	int rotacion;  // 0 a 3
-	int fila;      // fila de la esquina superior izquierda de su caja 4x4
-	int columna;   // columna de esa misma esquina
+	int tipo;  // alguno de los tipos anteriormente dichos
+	int rotacion;  // la rotación va del 0 al 3 para poder tener los 4 angulos
+	int fila;      
+	int columna;   // fila y columna de la pieza dentro de si misma osea del bloque
 };
 
-// Crea una pieza del tipo dado en la posicion inicial (arriba, al centro)
-Pieza crearPieza(int tipo);
+Pieza crearPieza(int tipo);// Esta función crea un tipo de pieza especifica y la posiciona al inicio osea en la parte superior del tablero y centrada
 
-// Guarda en filaBloque y colBloque donde queda el bloque b (0 a 3)
-// de la pieza dentro del tablero
-void posicionBloque(const Pieza& p, int b, int& filaBloque, int& colBloque);
+void posicionBloque(const Pieza& p, int b, int& filaBloque, int& colBloque);//funcion para ir moviendo el bloque de posicion y de rotación
 
-// Letra de la pieza para mostrarla en pantalla
-char letraPieza(int tipo);
+char letraPieza(int tipo);// depende del tipo devuelve su letra para poderla mostrar
 
 #endif

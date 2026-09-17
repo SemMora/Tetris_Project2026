@@ -1,7 +1,7 @@
 #include "Pieza.h"
 
-// FORMAS[tipo][rotacion][bloque] = {fila, columna} dentro de una caja 4x4.
-// Las 4 orientaciones ya estan calculadas: rotar es solo cambiar el indice.
+// FORMAS[tipo][rotacion][bloque] = {fila, columna} todo representado dentro de una caja de 4x4.
+// Al estar todas las direcciones precalculadas, para poder rotar es solo cambiar el indice. 
 static const int FORMAS[7][4][4][2] = {
 	// I
 	{ {{1,0},{1,1},{1,2},{1,3}}, {{0,2},{1,2},{2,2},{3,2}},
