@@ -9,7 +9,7 @@ const int FILAS = 20;
 const int TAM_CELDA = 30;
 const int MARGEN_X = 200;   // los margenes es para tener espacio entre la ventana y el tablero
 const int MARGEN_Y = 40;    
-const int ANCHO_VENTANA = 700;
+const int ANCHO_VENTANA = 840;
 const int ALTO_VENTANA = 700;
 
 #endif

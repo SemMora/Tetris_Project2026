@@ -2,8 +2,10 @@
 
 Tablero::Tablero() {
 	primero = nullptr;
-	for (int i = 0; i < FILAS; i++) {
+	int i = 0;
+	while (i < FILAS) {
 		insertarFilaVaciaAlInicio();
+		i++;
 	}
 }
 
@@ -16,14 +18,14 @@ Tablero::~Tablero() {
 }
 
 void Tablero::insertarFilaVaciaAlInicio() {
-	NodoFila* nuevo = new NodoFila;
+	NodoFila* nueva = new NodoFila;
 	int i = 0;
 	while (i < COLUMNAS) {
-		nuevo->celdas[i] = 0;
+		nueva->celdas[i] = 0;
 		i++;
 	}
-	nuevo->siguiente = primero;
-	primero = nuevo;
+	nueva->siguiente = primero;
+	primero = nueva;
 }
 
 NodoFila* Tablero::buscarFila(int fila) const {
@@ -91,7 +93,7 @@ int Tablero::limpiarLineas() {
 	NodoFila* anterior = nullptr;
 	NodoFila* actual = primero;
 	
-	// 1) Recorrer la lista y solo limpia si tienen una fila completa
+	// 1) Recorrer la lista y solo limpiar las filas completas 
 	while (actual != nullptr) {
 		if (nodoCompleto(actual)) {
 			NodoFila* borrar = actual;
@@ -109,13 +111,13 @@ int Tablero::limpiarLineas() {
 		}
 	}
 	
-	// 2) luego se insertan la misma cantidad de filas vacias nuevas , que de las que se eliminaron
+	// 2) Luego se inserta arriba tantas filas vacias como se eliminaron
 	int i = 0;
 	while (i < eliminadas) {
 		insertarFilaVaciaAlInicio();
 		i++;
 	}
-	return eliminadas; // y devuelvo el total de filas que se eliminaron
+	return eliminadas;
 }
 
 void Tablero::vaciar() {
@@ -123,7 +125,7 @@ void Tablero::vaciar() {
 	while (actual != nullptr) {
 		int i = 0;
 		while (i < COLUMNAS) {
-			actual->celdas[i] = 0; // limpio todo el tablero recorriendo cada nodo y limpiando su vector que tienen las celdas osea columnas
+			actual->celdas[i] = 0;
 			i++;
 		}
 		actual = actual->siguiente;

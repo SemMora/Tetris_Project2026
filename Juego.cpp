@@ -24,12 +24,14 @@ void Juego::nuevaPartida() { // practicamente limpia todo para una nueva partida
 }
 
 bool Juego::cabe(const Pieza& pieza) const {
-	for (int i = 0; i < 4; i++) {
+	int i = 0;
+	while (i < 4) {
 		int fila, columna;
 		posicionBloque(pieza, i, fila, columna);
 		if (!tablero.estaLibre(fila, columna)) {
 			return false;
 		}
+		i++;
 	}
 	return true;
 }
@@ -126,10 +128,12 @@ void Juego::usarHold() {
 }
 
 void Juego::fijarPieza() {
-	for (int i = 0; i < 4; i++) {
+	int i = 0;
+	while (i < 4) {
 		int fila, columna;
-		posicionBloque(actual, i, fila, columna); // busco la posicion del bloque
-		tablero.ponerCelda(fila, columna, actual.tipo + 1); // y pongo celdas en ese mismo lugar
+		posicionBloque(actual, i, fila, columna); // busco la posicion del bloque 
+		tablero.ponerCelda(fila, columna, actual.tipo + 1);// y pongo las celdas en ese mismo lugar
+		i++;
 	}
 	terminarColocacion();
 }
@@ -143,7 +147,7 @@ void Juego::terminarColocacion() {
 	sacarSiguientePieza();
 }
 
-void Juego::sumarPuntos(int lineasLimpias) {
+void Juego::sumarPuntos(int lineasLimpias) {// a mayor cantidad de lineas mayor serán los puntos excepto que si son más de 4 lineas ahí lo dejé fijo en 800
 	int puntos = 0;
 	if (lineasLimpias == 1) {
 		puntos = 100;

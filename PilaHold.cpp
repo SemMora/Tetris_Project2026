@@ -13,7 +13,7 @@ bool PilaHold::apilar(int tipo) {
 	if (estaLlena()) {
 		return false;
 	}
-	NodoPila* nuevo = new NodoPila(tipo,tope);
+	NodoPila* nuevo = new NodoPila{ tipo, tope };
 	tope = nuevo;
 	cantidad++;
 	return true;
