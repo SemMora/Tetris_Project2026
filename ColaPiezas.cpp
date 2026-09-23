@@ -11,10 +11,8 @@ ColaPiezas::~ColaPiezas() {
 }
 
 void ColaPiezas::encolar(int tipo) {
-	NodoCola* nuevo = new NodoCola;
-	nuevo->tipo = tipo;
-	nuevo->siguiente = nullptr;
-	
+	NodoCola* nuevo = new NodoCola(tipo,nullptr);
+
 	if (estaVacia()) {
 		frente = nuevo;
 	} else {

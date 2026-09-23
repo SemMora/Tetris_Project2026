@@ -9,7 +9,7 @@
 int main() {
 	srand((unsigned)time(nullptr));
 	
-	InitWindow(ANCHO_VENTANA, ALTO_VENTANA, "Tetris - EIF207");
+	InitWindow(ANCHO_VENTANA, ALTO_VENTANA, "Tetris");
 	SetTargetFPS(60);
 	
 	ColaPiezas cola;
