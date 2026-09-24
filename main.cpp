@@ -26,6 +26,8 @@ void leerControles(Juego& juego, float deltaTime) {
 	static float tiempoIzq = 0;
 	static float tiempoDer = 0;
 	static float tiempoAbajo = 0; // Son Static para que sin importar los frames o en donde se llamen siempre conserven su valor y así tener un tiempo acumulado por tecla
+	static float tiempoZ = 0;
+	static float tiempoX = 0;
 	
 	if (teclaConRepeticion(KEY_LEFT, tiempoIzq, deltaTime, 0.1f)) {
 		juego.moverIzquierda();
@@ -41,6 +43,13 @@ void leerControles(Juego& juego, float deltaTime) {
 	}
 	if (IsKeyPressed(KEY_C)) { // y esta como solo se puede usar 1 vez por pieza no necesita repetirse varias veces con intervalos
 		juego.usarHold();
+	}
+	
+	if (teclaConRepeticion(KEY_Z, tiempoZ, deltaTime, 0.1f)) { 
+		juego.deshacer();
+	}
+	if (teclaConRepeticion(KEY_X, tiempoX, deltaTime, 0.1f)) { 
+		juego.rehacer();
 	}
 }
 

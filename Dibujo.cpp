@@ -103,6 +103,8 @@ void dibujarControles() {
 	DrawText("Flecha Arriba: para rotar", PANEL_DERECHO, y + 50, 16, LIGHTGRAY);
 	DrawText("Flecha Abajo:para bajar", PANEL_DERECHO, y + 70, 16, LIGHTGRAY);
 	DrawText("Tecla C: para hold", PANEL_DERECHO, y + 90, 16, LIGHTGRAY);
+	DrawText("Tecla Z: para deshacer", PANEL_DERECHO, y + 110, 16, LIGHTGRAY);
+	DrawText("Tecla X: para rehacer", PANEL_DERECHO, y + 130, 16, LIGHTGRAY);
 }
 
 void dibujarJuego(const Juego& juego) {
@@ -114,4 +116,8 @@ void dibujarJuego(const Juego& juego) {
 	dibujarSiguientes(juego.getSiguiente(0), juego.getSiguiente(1), juego.getSiguiente(2));
 	dibujarDatos(juego.getPuntaje(), juego.getLineas(), juego.getNivel());
 	dibujarControles();
+	if (juego.estaNavegando()) { //esto dibuja mensaje de historial cuando se está deshaciendo o rehaciendo movimientos
+		DrawText(TextFormat("HISTORIAL: paso %d de %d", juego.getPaso(), juego.getTotalPasos()), MARGEN_X, 648, 20, SKYBLUE);
+		DrawText("Mueve la pieza para seguir jugando", MARGEN_X, 672, 16, LIGHTGRAY);
+	}
 }

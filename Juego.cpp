@@ -1,6 +1,6 @@
 #include "Juego.h"
 #include "Bolsa.h"
- 
+
 
 Juego::Juego() {
 	nuevaPartida();
@@ -10,17 +10,20 @@ void Juego::nuevaPartida() { // practicamente limpia todo para una nueva partida
 	tablero.vaciar();
 	siguientes.vaciar();
 	hold.vaciar();
+	historial.vaciar();
 	
 	puntaje = 0;
 	lineas = 0;
 	nivel = 1;
 	holdUsado = false;
 	terminado = false;
+	navegando = false;
 	intervaloCaida = 0.8f; // tiempo de intervalo en segundos entre cada caída de la pieza
 	tiempoCaida = 0;
 	
 	agregarBolsa(siguientes);
 	sacarSiguientePieza();
+	registrar(MOV_INICIO); 
 }
 
 bool Juego::cabe(const Pieza& pieza) const {
@@ -49,7 +52,7 @@ void Juego::sacarSiguientePieza() {
 }
 
 void Juego::actualizar(float deltaTime) {
-	if (terminado) {
+	if (terminado || navegando) { 
 		return;
 	}
 	tiempoCaida += deltaTime;   
@@ -62,10 +65,12 @@ void Juego::moverIzquierda() {
 	if (terminado) {
 		return;
 	}
+	navegando = false; 
 	Pieza prueba = actual;
 	prueba.columna--;
 	if (cabe(prueba)) {
 		actual = prueba;
+		registrar(MOV_MOVER);
 	}
 }
 
@@ -73,10 +78,12 @@ void Juego::moverDerecha() {
 	if (terminado) {
 		return;
 	}
+	navegando = false;
 	Pieza prueba = actual;
 	prueba.columna++;
 	if (cabe(prueba)) {
 		actual = prueba;
+		registrar(MOV_MOVER);
 	}
 }
 
@@ -84,11 +91,13 @@ void Juego::rotar() {
 	if (terminado) {
 		return;
 	}
+	navegando = false;
 	Pieza prueba = actual;
 	prueba.rotacion = (prueba.rotacion + 1) % 4;
 	
 	if (cabe(prueba)) { // al rotarla si no cabe simplemente no la rota
 		actual = prueba;
+		registrar(MOV_ROTAR);
 	}
 }
 
@@ -96,11 +105,13 @@ void Juego::bajar() {
 	if (terminado) {
 		return;
 	}
+	navegando = false;
 	tiempoCaida = 0;
 	Pieza prueba = actual;
 	prueba.fila++;
 	if (cabe(prueba)) {
 		actual = prueba;
+		registrar(MOV_BAJAR);
 	} else {                 // mi logica es , si la prueba puede bajar y seguir cabiendo entonces la original baja y si no es por que ya tocó el fondo y debe fijarse la pieza
 		fijarPieza(); 
 	}
@@ -110,6 +121,7 @@ void Juego::usarHold() {
 	if (terminado || holdUsado) {
 		return;
 	}
+	navegando = false;
 	int tipoActual = actual.tipo;
 	
 	if (hold.estaVacia()) { // si el hold no tiene piezas , se guarda la actual y se saca otra pieza de la cola
@@ -125,6 +137,27 @@ void Juego::usarHold() {
 	}
 	holdUsado = true;
 	tiempoCaida = 0; // se reinicia el intervalo de caída cuando se utiliza el hold
+	registrar(MOV_HOLD);
+}
+
+void Juego::deshacer() {
+	if (terminado) {
+		return;
+	}
+	if (historial.retroceder()) { 
+		restaurar(historial.estadoActual());
+		navegando = true;
+	}
+}
+
+void Juego::rehacer() {
+	if (terminado) {
+		return;
+	}
+	if (historial.avanzar()) {
+		restaurar(historial.estadoActual());
+		navegando = true;
+	}
 }
 
 void Juego::fijarPieza() {
@@ -145,6 +178,7 @@ void Juego::terminarColocacion() {
 	}
 	holdUsado = false;   // la siguiente pieza reinicia de nuevo el uso del hold
 	sacarSiguientePieza();
+	registrar(MOV_COLOCAR);
 }
 
 void Juego::sumarPuntos(int lineasLimpias) {// a mayor cantidad de lineas mayor serán los puntos excepto que si son más de 4 lineas ahí lo dejé fijo en 800
@@ -160,4 +194,49 @@ void Juego::sumarPuntos(int lineasLimpias) {// a mayor cantidad de lineas mayor 
 	}
 	puntaje += puntos;
 	lineas += lineasLimpias;
+}
+
+void Juego::registrar(int movimiento) {// guarda todo lo que este sucediendo en el juego y añade un nodo al historial
+	Estado estado;
+	tablero.guardarEn(estado.celdas);
+	estado.pieza = actual;
+	if (terminado) {
+		estado.pieza.tipo = -1;  
+	}
+	estado.hold = hold.verTope();
+	estado.holdUsado = holdUsado;
+	
+	estado.cantSiguientes = 0;
+	while (estado.cantSiguientes < siguientes.tamanio() && estado.cantSiguientes < 14) { 
+		estado.siguientes[estado.cantSiguientes] = siguientes.verPosicion(estado.cantSiguientes);
+		estado.cantSiguientes++;
+	}
+	
+	estado.puntaje = puntaje;
+	estado.lineas = lineas;
+	estado.nivel = nivel;
+	estado.movimiento = movimiento;
+	historial.agregar(estado);
+}
+
+void Juego::restaurar(const Estado& estado) {
+	tablero.cargarDesde(estado.celdas);
+	actual = estado.pieza;
+	
+	hold.vaciar();
+	if (estado.hold != -1) {
+		hold.apilar(estado.hold);
+	}
+	holdUsado = estado.holdUsado;
+	
+	siguientes.vaciar(); 
+	int i = 0;
+	while (i < estado.cantSiguientes) {
+		siguientes.encolar(estado.siguientes[i]);
+		i++;
+	}
+	
+	puntaje = estado.puntaje;
+	lineas = estado.lineas;
+	tiempoCaida = 0;
 }

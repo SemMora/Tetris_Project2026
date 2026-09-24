@@ -29,7 +29,10 @@ public:
 	bool filaCompleta(int fila) const;
 	bool hayFilasCompletas() const;
 	int limpiarLineas();   // limpia y devuelve cuantas lineas tuvo que limpiar
-	void vaciar();         	
+	void vaciar();      
+	void guardarEn(int destino[FILAS][COLUMNAS]) const;  
+	void cargarDesde(const int origen[FILAS][COLUMNAS]);
+	
 	// esto es lo mismo que hay en PilaHold , metodos para eliminar de forma eficiente sin duplicados 
 	Tablero(const Tablero&) = delete;
 	Tablero& operator=(const Tablero&) = delete;

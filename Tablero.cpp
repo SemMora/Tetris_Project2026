@@ -131,3 +131,32 @@ void Tablero::vaciar() {
 		actual = actual->siguiente;
 	}
 }
+
+
+void Tablero::guardarEn(int destino[FILAS][COLUMNAS]) const {// lo que hace es copiar el tablero en el historial
+	NodoFila* actual = primero;
+	int fila = 0;
+	while (actual != nullptr) {
+		int i = 0;
+		while (i < COLUMNAS) {
+			destino[fila][i] = actual->celdas[i];
+			i++;
+		}
+		actual = actual->siguiente;
+		fila++;
+	}
+}
+
+void Tablero::cargarDesde(const int origen[FILAS][COLUMNAS]) {// aquí copia desde el historial al tablero
+	NodoFila* actual = primero;
+	int fila = 0;
+	while (actual != nullptr) {
+		int i = 0;
+		while (i < COLUMNAS) {
+			actual->celdas[i] = origen[fila][i];
+			i++;
+		}
+		actual = actual->siguiente;
+		fila++;
+	}
+}
