@@ -9,6 +9,7 @@ struct Pieza {
 	int rotacion;  // la rotación va del 0 al 3 para poder tener los 4 angulos
 	int fila;      
 	int columna;   // fila y columna de la pieza dentro de si misma osea del bloque
+	bool bomba;    
 };
 
 Pieza crearPieza(int tipo);// Esta función crea un tipo de pieza especifica y la posiciona al inicio osea en la parte superior del tablero y centrada

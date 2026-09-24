@@ -6,42 +6,52 @@
 #include "PilaHold.h"
 #include "Pieza.h"
 #include "Historial.h"
+#include "ColaEventos.h"
 
 class Juego {// Esta clase es la principal , une todas las clases relacionadas con el juego para construirlo pero el dibujarlo lo hace otra clase
 private:
 	Tablero tablero;
-	ColaPiezas siguientes;
+	ColaPiezas siguientes; 
 	PilaHold hold;
-	Historial historial; 
+	Historial historial;    
+	ColaEventos eventos;   
 	Pieza actual;  
 	
 	int puntaje;
 	int lineas;
 	int nivel;
-	bool holdUsado;        
+	int multiplicador;     // x1 o x2 dependiendo de si hay un evento
+	bool holdUsado;       
+	bool proximaEsBomba;   // si es true entonces la proxima pieza será una bomba
 	bool terminado;
-	bool navegando;        // se pone en true cuando se deshace o rehace , y mientras esté así la pieza no cae
+	bool navegando;       
 	
 	float intervaloCaida;  // segundos entre cada bajada automatica
-	float tiempoCaida;     // acumulado de tiempo desde la ultima bajada automatica
+	float tiempoCaida;     // tiempo que paso desde la ultima bajada
+	float tiempoJuego;     // el reloj de la partida , con este se sabe cuando se dispara cada evento
+	
+	const char* mensaje;   // el aviso del ultimo evento que se usó
+	float tiempoMensaje;   
 	
 	bool cabe(const Pieza& p) const;   
-	void sacarSiguientePieza();      
+	void sacarSiguientePieza();        
 	void fijarPieza();                 
-	void terminarColocacion();         // limpia lineas de ser necesario y saca la siguiente pieza
+	void explotarBomba();              
+	void terminarColocacion();         
 	void sumarPuntos(int lineasLimpias);
+	void aplicarEvento(const Evento& e); 
 	void registrar(int movimiento);    
-	void restaurar(const Estado& e); 
+	void restaurar(const Estado& e);   
 	
 public:
 	Juego();
 	void nuevaPartida();
-	void actualizar(float dt);   // esta función se utiliza en cada frame para realizar la caida automatica de las piezas
+	void actualizar(float dt);   
 	
 	void moverIzquierda();
 	void moverDerecha();
 	void rotar();
-	void bajar();                // baja la pieza una fila , y fija la pieza si ya no puede bajar más
+	void bajar();       // baja la pieza una fila , y fija la pieza si ya no puede bajar más
 	void usarHold();
 	void deshacer();
 	void rehacer();
@@ -54,11 +64,15 @@ public:
 	int getPuntaje() const { return puntaje; }
 	int getLineas() const { return lineas; }
 	int getNivel() const { return nivel; }
+	int getMultiplicador() const { return multiplicador; }
 	bool estaTerminado() const { return terminado; }
 	bool estaNavegando() const { return navegando; }
 	int getPaso() const { return historial.getPosicion(); }
 	int getTotalPasos() const { return historial.tamanio(); }
 	Historial& getHistorial() { return historial; }
+	Evento getProximoEvento() const { return eventos.verFrente(); }
+	float getTiempoJuego() const { return tiempoJuego; }
+	const char* getMensaje() const;  
 };
 
 #endif

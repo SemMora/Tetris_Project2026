@@ -29,6 +29,7 @@ public:
 	bool filaCompleta(int fila) const;
 	bool hayFilasCompletas() const;
 	int limpiarLineas();   // limpia y devuelve cuantas lineas tuvo que limpiar
+	void eliminarFila(int fila);   // esta funciona la utiliza la bomba
 	void vaciar();      
 	void guardarEn(int destino[FILAS][COLUMNAS]) const;  
 	void cargarDesde(const int origen[FILAS][COLUMNAS]);

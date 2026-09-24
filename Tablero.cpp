@@ -160,3 +160,25 @@ void Tablero::cargarDesde(const int origen[FILAS][COLUMNAS]) {// aquí copia desd
 		fila++;
 	}
 }
+
+
+void Tablero::eliminarFila(int fila) {
+	if (fila < 0 || fila >= FILAS) {
+		return;
+	}
+	NodoFila* anterior = nullptr;
+	NodoFila* actual = primero;
+	int i = 0;
+	while (i < fila) {
+		anterior = actual;
+		actual = actual->siguiente;
+		i++;
+	}
+	if (anterior == nullptr) {
+		primero = actual->siguiente;
+	} else {
+		anterior->siguiente = actual->siguiente;
+	}
+	delete actual;
+	insertarFilaVaciaAlInicio();
+}

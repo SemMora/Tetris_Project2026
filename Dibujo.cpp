@@ -52,7 +52,11 @@ void dibujarPieza(const Pieza& pieza) { // dibuja una pieza en el tablero
 	while (i < 4) {// cada pieza tiene 4 bloques
 		int fila, columna;
 		posicionBloque(pieza, i, fila, columna);
-		dibujarCelda(fila, columna, colorPieza(pieza.tipo));
+		if (pieza.bomba) { 
+			dibujarCelda(fila, columna, WHITE);
+		} else {
+			dibujarCelda(fila, columna, colorPieza(pieza.tipo));
+		}
 		i++; 
 	}
 }
@@ -96,6 +100,24 @@ void dibujarDatos(int puntaje, int lineas, int nivel) {
 	DrawText(TextFormat("%d", nivel), 20, 355, 30, YELLOW);
 }
 
+void dibujarEventos(int multiplicador, Evento proximo, float tiempoJuego, const char* mensaje) {
+	if (multiplicador > 1) { 
+		DrawText("PUNTOS x2", 20, 400, 20, GOLD);
+	}
+	if (proximo.tipo != -1) { 
+		int segundos = (int)(proximo.momento - tiempoJuego) + 1;
+		DrawText("PROXIMO EVENTO", 20, 440, 16, LIGHTGRAY);
+		DrawText(nombreEvento(proximo.tipo), 20, 460, 16, SKYBLUE);
+		DrawText(TextFormat("en %d s", segundos), 20, 480, 16, LIGHTGRAY);
+	}
+	if (mensaje != nullptr) { 
+		int centroTablero = MARGEN_X + COLUMNAS * TAM_CELDA / 2;
+		int ancho = MeasureText(mensaje, 20);
+		DrawText(mensaje, centroTablero - ancho / 2, 12, 20, GOLD);
+	}
+}
+
+
 void dibujarControles() {
 	int y = 380;
 	DrawText("CONTROLES DEL JUEGO", PANEL_DERECHO, y, 20, WHITE);
@@ -107,7 +129,7 @@ void dibujarControles() {
 	DrawText("Tecla X: para rehacer", PANEL_DERECHO, y + 130, 16, LIGHTGRAY);
 }
 
-void dibujarJuego(const Juego& juego) {
+void dibujarJuego(const Juego& juego) {// esto se ejecuta en cada frame para dibujar todo el juego
 	dibujarTablero(juego.getTablero());
 	if (!juego.estaTerminado()) {//
 		dibujarPieza(juego.getPieza());
@@ -115,6 +137,7 @@ void dibujarJuego(const Juego& juego) {
 	dibujarHold(juego.getHold());
 	dibujarSiguientes(juego.getSiguiente(0), juego.getSiguiente(1), juego.getSiguiente(2));
 	dibujarDatos(juego.getPuntaje(), juego.getLineas(), juego.getNivel());
+	dibujarEventos(juego.getMultiplicador(), juego.getProximoEvento(), juego.getTiempoJuego(), juego.getMensaje());
 	dibujarControles();
 	if (juego.estaNavegando()) { //esto dibuja mensaje de historial cuando se está deshaciendo o rehaciendo movimientos
 		DrawText(TextFormat("HISTORIAL: paso %d de %d", juego.getPaso(), juego.getTotalPasos()), MARGEN_X, 648, 20, SKYBLUE);

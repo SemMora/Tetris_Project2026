@@ -12,7 +12,7 @@ Historial::~Historial() {
 	vaciar();
 }
 
-void Historial::borrarDespuesDeActual() {// si el jugador deshizo pasos y luego hizo un movimiento nuevo , esos pasos ya no se pueden rehacer entonces los borro
+void Historial::borrarDespuesDeActual() {
 	if (actual == nullptr) {
 		return;
 	}
@@ -24,7 +24,7 @@ void Historial::borrarDespuesDeActual() {// si el jugador deshizo pasos y luego 
 		borrar = siguiente;
 	}
 	actual->siguiente = nullptr;
-	ultimo = actual; // ahora el ultimo es el paso en el que íbamos
+	ultimo = actual; 
 }
 
 void Historial::agregar(const Estado& e) {
@@ -33,9 +33,9 @@ void Historial::agregar(const Estado& e) {
 	NodoHistorial* nuevo = new NodoHistorial;
 	nuevo->estado = e;
 	nuevo->siguiente = nullptr;
-	nuevo->anterior = ultimo; // el nuevo nodo queda enlazado hacia atrás con el que era el ultimo
+	nuevo->anterior = ultimo; 
 	
-	if (ultimo == nullptr) { // si la lista estaba vacía el nuevo también es el primero
+	if (ultimo == nullptr) { 
 		primero = nuevo;
 	} else {
 		ultimo->siguiente = nuevo;
@@ -50,7 +50,7 @@ bool Historial::retroceder() {
 	if (actual == nullptr || actual->anterior == nullptr) {
 		return false;
 	}
-	actual = actual->anterior; // solo muevo el puntero , no se borra nada
+	actual = actual->anterior; 
 	posicion--;
 	return true;
 }

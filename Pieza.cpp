@@ -32,6 +32,7 @@ Pieza crearPieza(int tipo) {
 	p.rotacion = 0;
 	p.fila = 0;
 	p.columna = 3;
+	p.bomba = false; 
 	return p;
 }
 

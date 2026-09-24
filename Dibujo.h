@@ -16,11 +16,12 @@ void dibujarTablero(const Tablero& tablero);
 void dibujarPieza(const Pieza& pieza);
 
 
-void dibujarMiniPieza(int tipo, int x, int y);// esto dibuja una mini pieza para el hold y las siguientes piezas
+void dibujarMiniPieza(int tipo, int x, int y);
 
 void dibujarHold(int tipo);
 void dibujarSiguientes(int tipo1, int tipo2, int tipo3);
 void dibujarDatos(int puntaje, int lineas, int nivel);
+void dibujarEventos(int multiplicador, Evento proximo, float tiempoJuego, const char* mensaje);
 void dibujarControles();
 
 void dibujarJuego(const Juego& juego); // aqui se dibuja todo en general osea el tablero , la pieza bajando , el hold y demás
