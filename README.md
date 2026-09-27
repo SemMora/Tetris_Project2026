@@ -28,6 +28,7 @@ El juego crea `puntajes.txt` (archivo para los 10 mejores puntajes) y `tiempos.t
 | M | Medir los tiempos de los ordenamientos |
 | R | Ver la repetición al terminar la partida (Espacio, flechas o botones con el mouse) |
 | ESC | Volver al menú / salir|
+| F11 | Pantalla completa |
 
 ## Estructuras de datos
 | Mecánica | Estructura | Archivos |

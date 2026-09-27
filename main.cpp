@@ -106,6 +106,37 @@ void leerNombre(std::string& nombre) {//aqui se lee el nombre del jugador para g
 	}
 }
 
+void cambiarPantallaCompleta() {//Con F11 se cambia entre pantalla completa y ventana normal
+	int monitor = GetCurrentMonitor(); // la funcion de raylib ToggleFullscreen no redimensiona la ventana de la manera correcta, así que tuve que hacerlo manualmente
+
+	Vector2 esquinaMonitor = GetMonitorPosition(monitor); // por si el juego está en un segundo monitor
+	if (IsWindowState(FLAG_WINDOW_UNDECORATED)) {// modo normal 
+		ClearWindowState(FLAG_WINDOW_UNDECORATED);
+		SetWindowSize(ANCHO_VENTANA, ALTO_VENTANA);
+		SetWindowPosition((int)esquinaMonitor.x + (GetMonitorWidth(monitor) - ANCHO_VENTANA) / 2, (int)esquinaMonitor.y + (GetMonitorHeight(monitor) - ALTO_VENTANA) / 2); // la vuelvo a centrar
+	} else {// modo pantalla completa
+		SetWindowState(FLAG_WINDOW_UNDECORATED);
+		SetWindowPosition((int)esquinaMonitor.x, (int)esquinaMonitor.y);
+		SetWindowSize(GetMonitorWidth(monitor), GetMonitorHeight(monitor));
+	}
+}
+
+Camera2D camaraAjustada() {//esta funcion ajusta la camara para que todo se vea bien en pantalla completa
+	float escala = (float)GetScreenWidth() / ANCHO_VENTANA;
+	float escalaAlto = (float)GetScreenHeight() / ALTO_VENTANA;
+	if (escalaAlto < escala) { 
+		escala = escalaAlto;
+	}
+	Camera2D camara;
+	camara.offset = Vector2{ (GetScreenWidth() - ANCHO_VENTANA * escala) / 2, (GetScreenHeight() - ALTO_VENTANA * escala) / 2 };
+	camara.target = Vector2{ 0, 0 };
+	camara.rotation = 0;
+	camara.zoom = escala;
+	SetMouseOffset(-(int)camara.offset.x, -(int)camara.offset.y); //  el SetMouseOffset es para no perder el control del mouse al redimensionar la ventana
+	SetMouseScale(1 / escala, 1 / escala);
+	return camara;
+}
+
 int main() {
 	srand((unsigned)time(nullptr)); // se toman numeros aleatorios siempre para que al iniciar el juego nunca empiece de la misma forma
 	
@@ -128,8 +159,12 @@ int main() {
 	ResultadoMedicion resultado; 
 	
 	while (!WindowShouldClose() && !salir) {
-		float deltaTime = GetFrameTime(); // Por aquello el tiempo delta es el tiempo que ocurre entre cada frame 
-		
+		float deltaTime = GetFrameTime(); // Por aquello el tiempo delta es el tiempo que ocurre entre cada frame
+
+		if (IsKeyPressed(KEY_F11)) {
+			cambiarPantallaCompleta();
+		}
+
 		// primero reviso las teclas y la logica según la pantalla en la que esté
 		if (pantalla == PANTALLA_INICIO) {
 			if (IsKeyPressed(KEY_ENTER)) {
@@ -141,9 +176,12 @@ int main() {
 				pantalla = PANTALLA_TOPPUNTAJES;
 			}
 			if (IsKeyPressed(KEY_M)) {
-				BeginDrawing(); 
+				BeginDrawing();
 				ClearBackground(BLACK);
-				textoCentrado("Midiendo tiempos, espera un momento...", 330, 25, WHITE);
+				dibujarFondo();
+				BeginMode2D(camaraAjustada());
+				textoCentrado("Midiendo tiempos, espera un momento...", 330, 20, WHITE);
+				EndMode2D();
 				EndDrawing();
 				resultado = medirTiempos(ARCHIVO_TIEMPOS);
 				pantalla = PANTALLA_MEDICION;
@@ -229,7 +267,9 @@ int main() {
 		
 		BeginDrawing(); // función para preparar a raylib a dibujar
 		ClearBackground(BLACK);
-		
+		dibujarFondo(); // el fondo va antes de la camara para que cubra toda la pantalla
+		BeginMode2D(camaraAjustada()); // todo lo que se dibuje de aquí hasta EndMode2D se escala si está en pantalla completa
+
 		//aquí se dibuja todo según la pantalla en la que esté el juego
 		if (pantalla == PANTALLA_INICIO) {
 			dibujarPantallaInicio();
@@ -254,7 +294,8 @@ int main() {
 		} else if (pantalla == PANTALLA_MEDICION) {
 			dibujarPantallaMedicion(resultado);
 		}
-		
+
+		EndMode2D();
 		EndDrawing();
 	}
 	

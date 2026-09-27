@@ -11,6 +11,7 @@ const Rectangle BtnAvanzar = { 430, 652, 120, 36 };
 
 void textoCentrado(const char* texto, int y, int tamanio, Color color);// escribe un texto centrado a lo ancho de la ventana
 void oscurecerFondo();// permite oscurecer el fondo de la ventana para que se vea que hay un menu encima
+void dibujarFondo();// el degradado que va detras de todas las pantallas
 
 void dibujarPantallaInicio();
 void dibujarPantallaPausa();
