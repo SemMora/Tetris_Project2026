@@ -14,7 +14,8 @@ void dibujarPantallaInicio() {// este es el menu principal antes de jugar
 	textoCentrado("TETRIS", 140, 80, SKYBLUE);
 	textoCentrado("Developed By Sem", 240, 20, LIGHTGRAY);
 	textoCentrado("ENTER: jugar", 340, 25, WHITE);
-	textoCentrado("ESC: salir", 380, 25, WHITE);
+	textoCentrado("T: mejores puntajes", 380, 25, WHITE);
+	textoCentrado("ESC: salir", 420, 25, WHITE);
 }
 
 void dibujarPantallaPausa() {// se dibuja encima del juego , por eso primero oscurezco el fondo
@@ -30,11 +31,12 @@ void dibujarPantallaFin(int puntaje) {
 	textoCentrado(TextFormat("Puntaje: %d", puntaje), 270, 30, YELLOW);
 	textoCentrado("R: ver repeticion de la partida", 340, 25, WHITE);
 	textoCentrado("ENTER: jugar otra vez", 380, 25, WHITE);
-	textoCentrado("ESC: volver al menu", 420, 25, WHITE);
+	textoCentrado("T: mejores puntajes", 420, 25, WHITE);
+	textoCentrado("ESC: volver al menu", 460, 25, WHITE);
 }
 
 void dibujarBoton(Rectangle btn, const char* texto) {
-	bool mouseEncima = CheckCollisionPointRec(GetMousePosition(), btn); 
+	bool mouseEncima = CheckCollisionPointRec(GetMousePosition(), btn);
 	if (mouseEncima) {
 		DrawRectangleRec(btn, DARKGRAY); // practicamente como un hover de css
 	} else {
@@ -64,4 +66,38 @@ void dibujarControlesRepeticion(int paso, int total, const char* movimiento, boo
 	DrawText("IZQ: paso atras", 20, 580, 16, LIGHTGRAY);
 	DrawText("DER: paso adelante", 20, 600, 16, LIGHTGRAY);
 	DrawText("ESC: salir", 20, 620, 16, LIGHTGRAY);
+}
+
+void dibujarPantallaPeticionNombre(const char* nombre, int puntaje) {
+	oscurecerFondo();
+	textoCentrado("ENTRASTE AL TOP 10!", 190, 40, GOLD);
+	textoCentrado(TextFormat("Puntaje: %d", puntaje), 250, 30, YELLOW);
+	textoCentrado("Escribe tu nombre (letras y numeros):", 320, 20, LIGHTGRAY);
+	DrawRectangleLines(ANCHO_VENTANA / 2 - 150, 355, 300, 45, WHITE); // el textfield donde se va escribiendo el nombre
+	textoCentrado(nombre, 365, 28, WHITE);
+	textoCentrado("ENTER: guardar", 430, 22, WHITE);
+}
+
+void dibujarPantallaTop(const ListaPuntajes& lista, int algoritmo) {
+	textoCentrado("MEJORES PUNTAJES", 50, 40, GOLD);
+	
+	int centro = ANCHO_VENTANA / 2;
+	const NodoPuntaje* actual = lista.getcabeza();
+	if (actual == nullptr) {
+		textoCentrado("Todavia no hay puntajes guardados", 250, 20, LIGHTGRAY);
+	}
+	int posicion = 1;
+	int y = 120;
+	while (actual != nullptr) {// mientras haya nodos en la lista voy a ir dibujando cada uno de ellos , un nodo lo puedo representar como un jugador con su puntaje
+		DrawText(TextFormat("%2d.", posicion), centro - 220, y, 25, LIGHTGRAY);
+		DrawText(actual->nombre.c_str(), centro - 170, y, 25, WHITE);
+		DrawText(TextFormat("%d", actual->puntaje), centro + 110, y, 25, YELLOW);
+		actual = actual->siguiente;
+		posicion++;
+		y += 35;
+	}
+	
+	textoCentrado(TextFormat("Ordenado con: %s", nombreAlgoritmo(algoritmo)), 500, 20, SKYBLUE);
+	textoCentrado("1: Burbuja     2: Merge sort", 580, 20, WHITE);
+	textoCentrado("ESC: volver al menu", 615, 20, WHITE);
 }

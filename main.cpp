@@ -3,12 +3,16 @@
 #include "Juego.h"
 #include "Dibujo.h"
 #include "Pantallas.h"
+#include "Puntajes.h"
 #include <cstdlib>
 #include <ctime>
+#include <string>
 
-enum Pantalla { PANTALLA_INICIO, PANTALLA_JUEGO, PANTALLA_PAUSA, PANTALLA_FIN, PANTALLA_REPETICION }; // estas son todas las pantallas por las que puede pasar el programa
+enum Pantalla { PANTALLA_INICIO, PANTALLA_JUEGO, PANTALLA_PAUSA, PANTALLA_NOMBRE, PANTALLA_FIN, PANTALLA_REPETICION, PANTALLA_TOPPUNTAJES }; // estas son todas las pantallas por las que puede pasar el programa
 
-const float PASO_REPLAY = 0.08f; // cada cuantos segundos avanza un paso el replay cuando se reproduce solo
+const float PASO_REPETICION = 0.08f; // cada cuantos segundos avanza un paso la repeticion cuando se reproduce solo
+const char* ARCHIVO_PUNTAJES = "puntajes.txt"; 
+
 
 bool teclaConRepeticion(int tecla, float& acumulado, float deltaTime, float intervalo) { // funcion para poder dejar estripada la tecla y que siga acumulando y haciendo sus eventos
 	if (IsKeyPressed(tecla)) {
@@ -59,7 +63,7 @@ void controlarRepeticion(Historial& historial, bool& reproduciendo, float& tiemp
 	static float tiempoIzq = 0;
 	static float tiempoDer = 0;
 	
-	if (IsKeyPressed(KEY_SPACE) || botonPresionado(BtnReproducir)) { // si se presiona espacio o el boton de reproducir/pausar entonces se cambia el estado de reproduccion
+	if (IsKeyPressed(KEY_SPACE) || botonPresionado(BtnReproducir)) {
 		if (!reproduciendo && historial.getPosicion() == historial.tamanio()) { // si ya llegó al final y se le da reproducir entonces empieza otra vez desde el inicio
 			historial.irAlPrimero();
 		}
@@ -76,12 +80,27 @@ void controlarRepeticion(Historial& historial, bool& reproduciendo, float& tiemp
 	
 	if (reproduciendo) {
 		tiempoReplay += deltaTime;
-		if (tiempoReplay >= PASO_REPLAY) {// solo va a reproducirse si ya pasó el tiempo necesario para avanzar un paso
+		if (tiempoReplay >= PASO_REPETICION) {// solo va a reproducirse si ya pasó el tiempo necesario para avanzar un paso
 			tiempoReplay = 0;
 			if (!historial.avanzar()) {
 				reproduciendo = false;
 			}
 		}
+	}
+}
+
+void leerNombre(std::string& nombre) {//aqui se lee el nombre del jugador para guardarlo en la tabla de mejores puntajes
+	int tecla = GetCharPressed(); // GetCharPressed() devuelve numeros y si es 0 significa que se terminó de escribir
+	while (tecla > 0) {
+		bool letra = (tecla >= 'a' && tecla <= 'z') || (tecla >= 'A' && tecla <= 'Z');
+		bool numero = tecla >= '0' && tecla <= '9';
+		if ((letra || numero) && nombre.size() < 25) { 
+			nombre += (char)tecla;
+		}
+		tecla = GetCharPressed();
+	}
+	if (IsKeyPressed(KEY_BACKSPACE) && !nombre.empty()) {
+		nombre.erase(nombre.size() - 1);
 	}
 }
 
@@ -98,6 +117,12 @@ int main() {
 	bool reproduciendo = false; // esto es para saber si la repetición del historial se está reproduciendo sola o no
 	float tiempoReplay = 0;
 	
+	ListaPuntajes puntajes; // aquí cargo el txt de top 10 mejores puntajes
+	int algoritmo = 2;
+	puntajes.cargar(ARCHIVO_PUNTAJES);
+	puntajes.ordenar(algoritmo);
+	std::string nombre;
+	
 	while (!WindowShouldClose() && !salir) {
 		float deltaTime = GetFrameTime(); // Por aquello el tiempo delta es el tiempo que ocurre entre cada frame 
 		
@@ -106,6 +131,10 @@ int main() {
 			if (IsKeyPressed(KEY_ENTER)) {
 				juego.nuevaPartida();
 				pantalla = PANTALLA_JUEGO;
+			}
+			if (IsKeyPressed(KEY_T)) {
+				puntajes.ordenar(algoritmo); 
+				pantalla = PANTALLA_TOPPUNTAJES;
 			}
 			if (IsKeyPressed(KEY_ESCAPE)) {
 				salir = true;
@@ -119,7 +148,12 @@ int main() {
 				pantalla = PANTALLA_PAUSA;
 			}
 			if (juego.estaTerminado()) {
-				pantalla = PANTALLA_FIN;
+				if (puntajes.entraAlTop(juego.getPuntaje())) { // si el puntaje entra al top primero se pide el nombre
+					nombre = "";
+					pantalla = PANTALLA_NOMBRE;
+				} else {
+					pantalla = PANTALLA_FIN;
+				}
 			}
 		} else if (pantalla == PANTALLA_PAUSA) { // durante la pausa no se llama a actualizar , por eso todo se queda quieto
 			if (IsKeyPressed(KEY_P)) {
@@ -127,6 +161,18 @@ int main() {
 			}
 			if (IsKeyPressed(KEY_ESCAPE)) {
 				pantalla = PANTALLA_INICIO;
+			}
+		} else if (pantalla == PANTALLA_NOMBRE) {
+			leerNombre(nombre);
+			if (IsKeyPressed(KEY_ENTER)) {
+				if (nombre.empty()) {
+					nombre = "Jugador";
+				}
+				puntajes.agregar(nombre, juego.getPuntaje());
+				puntajes.ordenar(algoritmo);
+				puntajes.recortar(10);
+				puntajes.guardar(ARCHIVO_PUNTAJES);
+				pantalla = PANTALLA_FIN;
 			}
 		} else if (pantalla == PANTALLA_FIN) {
 			if (IsKeyPressed(KEY_R)) {
@@ -139,6 +185,10 @@ int main() {
 				juego.nuevaPartida();
 				pantalla = PANTALLA_JUEGO;
 			}
+			if (IsKeyPressed(KEY_T)) {
+				puntajes.ordenar(algoritmo);
+				pantalla = PANTALLA_TOPPUNTAJES;
+			}
 			if (IsKeyPressed(KEY_ESCAPE)) {
 				pantalla = PANTALLA_INICIO;
 			}
@@ -147,12 +197,24 @@ int main() {
 			if (IsKeyPressed(KEY_ESCAPE)) {
 				pantalla = PANTALLA_FIN;
 			}
+		} else if (pantalla == PANTALLA_TOPPUNTAJES) {
+			if (IsKeyPressed(KEY_ONE)) { 
+				algoritmo = 1;
+				puntajes.ordenar(algoritmo);
+			}
+			if (IsKeyPressed(KEY_TWO)) {
+				algoritmo = 2;
+				puntajes.ordenar(algoritmo);
+			}
+			if (IsKeyPressed(KEY_ESCAPE)) {
+				pantalla = PANTALLA_INICIO;
+			}
 		}
 		
 		BeginDrawing(); // función para preparar a raylib a dibujar
 		ClearBackground(BLACK);
 		
-		// y luego dibujo lo que corresponde a la pantalla , la pausa y el fin se dibujan encima del juego
+		//aquí se dibuja todo según la pantalla en la que esté el juego
 		if (pantalla == PANTALLA_INICIO) {
 			dibujarPantallaInicio();
 		} else if (pantalla == PANTALLA_JUEGO) {
@@ -160,6 +222,9 @@ int main() {
 		} else if (pantalla == PANTALLA_PAUSA) {
 			dibujarJuego(juego);
 			dibujarPantallaPausa();
+		} else if (pantalla == PANTALLA_NOMBRE) {
+			dibujarJuego(juego);
+			dibujarPantallaPeticionNombre(nombre.c_str(), juego.getPuntaje());
 		} else if (pantalla == PANTALLA_FIN) {
 			dibujarJuego(juego);
 			dibujarPantallaFin(juego.getPuntaje());
@@ -168,6 +233,8 @@ int main() {
 			const Estado& estado = historial.estadoActual();
 			dibujarEstado(estado);
 			dibujarControlesRepeticion(historial.getPosicion(), historial.tamanio(), nombreMovimiento(estado.movimiento), reproduciendo);
+		} else if (pantalla == PANTALLA_TOPPUNTAJES) {
+			dibujarPantallaTop(puntajes, algoritmo);
 		}
 		
 		EndDrawing();
