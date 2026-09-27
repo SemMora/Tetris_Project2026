@@ -1,0 +1,6 @@
+Tiempo de ordenar la tabla de puntajes (microsegundos, promedio de 3 corridas)
+n	Bubble Sort O(n^2)	Merge sort O(n log n)
+10	1.23	0.50
+100	85.33	4.43
+1000	8076.17	60.37
+10000	813899.47	815.03

@@ -4,14 +4,16 @@
 #include "Dibujo.h"
 #include "Pantallas.h"
 #include "Puntajes.h"
+#include "Medicion.h"
 #include <cstdlib>
 #include <ctime>
 #include <string>
 
-enum Pantalla { PANTALLA_INICIO, PANTALLA_JUEGO, PANTALLA_PAUSA, PANTALLA_NOMBRE, PANTALLA_FIN, PANTALLA_REPETICION, PANTALLA_TOPPUNTAJES }; // estas son todas las pantallas por las que puede pasar el programa
+enum Pantalla { PANTALLA_INICIO, PANTALLA_JUEGO, PANTALLA_PAUSA, PANTALLA_NOMBRE, PANTALLA_FIN, PANTALLA_REPETICION, PANTALLA_TOPPUNTAJES, PANTALLA_MEDICION }; // estas son todas las pantallas por las que puede pasar el programa
 
 const float PASO_REPETICION = 0.08f; // cada cuantos segundos avanza un paso la repeticion cuando se reproduce solo
 const char* ARCHIVO_PUNTAJES = "puntajes.txt"; 
+const char* ARCHIVO_TIEMPOS = "tiempos.txt"; // aquí se guarda la tabla de tiempos de los ordenamientos para el informe
 
 
 bool teclaConRepeticion(int tecla, float& acumulado, float deltaTime, float intervalo) { // funcion para poder dejar estripada la tecla y que siga acumulando y haciendo sus eventos
@@ -94,7 +96,7 @@ void leerNombre(std::string& nombre) {//aqui se lee el nombre del jugador para g
 	while (tecla > 0) {
 		bool letra = (tecla >= 'a' && tecla <= 'z') || (tecla >= 'A' && tecla <= 'Z');
 		bool numero = tecla >= '0' && tecla <= '9';
-		if ((letra || numero) && nombre.size() < 25) { 
+		if ((letra || numero) && nombre.size() < 12) { 
 			nombre += (char)tecla;
 		}
 		tecla = GetCharPressed();
@@ -122,6 +124,8 @@ int main() {
 	puntajes.cargar(ARCHIVO_PUNTAJES);
 	puntajes.ordenar(algoritmo);
 	std::string nombre;
+	double tiempoOrden = 0; // lo que tardó el ultimo ordenamiento de la tabla , se muestra en la pantalla del top
+	ResultadoMedicion resultado; 
 	
 	while (!WindowShouldClose() && !salir) {
 		float deltaTime = GetFrameTime(); // Por aquello el tiempo delta es el tiempo que ocurre entre cada frame 
@@ -133,8 +137,16 @@ int main() {
 				pantalla = PANTALLA_JUEGO;
 			}
 			if (IsKeyPressed(KEY_T)) {
-				puntajes.ordenar(algoritmo); 
+				tiempoOrden = ordenarMidiendo(puntajes, algoritmo);
 				pantalla = PANTALLA_TOPPUNTAJES;
+			}
+			if (IsKeyPressed(KEY_M)) {
+				BeginDrawing(); 
+				ClearBackground(BLACK);
+				textoCentrado("Midiendo tiempos, espera un momento...", 330, 25, WHITE);
+				EndDrawing();
+				resultado = medirTiempos(ARCHIVO_TIEMPOS);
+				pantalla = PANTALLA_MEDICION;
 			}
 			if (IsKeyPressed(KEY_ESCAPE)) {
 				salir = true;
@@ -186,7 +198,7 @@ int main() {
 				pantalla = PANTALLA_JUEGO;
 			}
 			if (IsKeyPressed(KEY_T)) {
-				puntajes.ordenar(algoritmo);
+				tiempoOrden = ordenarMidiendo(puntajes, algoritmo);
 				pantalla = PANTALLA_TOPPUNTAJES;
 			}
 			if (IsKeyPressed(KEY_ESCAPE)) {
@@ -200,12 +212,16 @@ int main() {
 		} else if (pantalla == PANTALLA_TOPPUNTAJES) {
 			if (IsKeyPressed(KEY_ONE)) { 
 				algoritmo = 1;
-				puntajes.ordenar(algoritmo);
+				tiempoOrden = ordenarMidiendo(puntajes, algoritmo);
 			}
 			if (IsKeyPressed(KEY_TWO)) {
 				algoritmo = 2;
-				puntajes.ordenar(algoritmo);
+				tiempoOrden = ordenarMidiendo(puntajes, algoritmo);
 			}
+			if (IsKeyPressed(KEY_ESCAPE)) {
+				pantalla = PANTALLA_INICIO;
+			}
+		} else if (pantalla == PANTALLA_MEDICION) {
 			if (IsKeyPressed(KEY_ESCAPE)) {
 				pantalla = PANTALLA_INICIO;
 			}
@@ -234,7 +250,9 @@ int main() {
 			dibujarEstado(estado);
 			dibujarControlesRepeticion(historial.getPosicion(), historial.tamanio(), nombreMovimiento(estado.movimiento), reproduciendo);
 		} else if (pantalla == PANTALLA_TOPPUNTAJES) {
-			dibujarPantallaTop(puntajes, algoritmo);
+			dibujarPantallaTopPuntajes(puntajes, algoritmo, tiempoOrden);
+		} else if (pantalla == PANTALLA_MEDICION) {
+			dibujarPantallaMedicion(resultado);
 		}
 		
 		EndDrawing();

@@ -15,7 +15,8 @@ void dibujarPantallaInicio() {// este es el menu principal antes de jugar
 	textoCentrado("Developed By Sem", 240, 20, LIGHTGRAY);
 	textoCentrado("ENTER: jugar", 340, 25, WHITE);
 	textoCentrado("T: mejores puntajes", 380, 25, WHITE);
-	textoCentrado("ESC: salir", 420, 25, WHITE);
+	textoCentrado("M: medir tiempos de ordenamiento", 420, 25, WHITE);
+	textoCentrado("ESC: salir", 460, 25, WHITE);
 }
 
 void dibujarPantallaPausa() {// se dibuja encima del juego , por eso primero oscurezco el fondo
@@ -78,7 +79,7 @@ void dibujarPantallaPeticionNombre(const char* nombre, int puntaje) {
 	textoCentrado("ENTER: guardar", 430, 22, WHITE);
 }
 
-void dibujarPantallaTop(const ListaPuntajes& lista, int algoritmo) {
+void dibujarPantallaTopPuntajes(const ListaPuntajes& lista, int algoritmo, double microsegundos) {
 	textoCentrado("MEJORES PUNTAJES", 50, 40, GOLD);
 	
 	int centro = ANCHO_VENTANA / 2;
@@ -98,6 +99,28 @@ void dibujarPantallaTop(const ListaPuntajes& lista, int algoritmo) {
 	}
 	
 	textoCentrado(TextFormat("Ordenado con: %s", nombreAlgoritmo(algoritmo)), 500, 20, SKYBLUE);
+	textoCentrado(TextFormat("Tardó %.2f microsegundos", microsegundos), 530, 20, SKYBLUE);
 	textoCentrado("1: Burbuja     2: Merge sort", 580, 20, WHITE);
 	textoCentrado("ESC: volver al menu", 615, 20, WHITE);
+}
+
+void dibujarPantallaMedicion(const ResultadoMedicion& resultado) {// aqui creo la pantalla en donde muestro los tiempos de bubble sort vs  merge sort y guardo en un txt para el informe
+	textoCentrado("BURBUJA vs MERGE SORT", 60, 35, GOLD);
+	textoCentrado(TextFormat("Microsegundos , promedio de %d corridas", REPETICIONES), 110, 18, LIGHTGRAY);
+	
+	int centro = ANCHO_VENTANA / 2;
+	DrawText("n", centro - 230, 170, 22, WHITE);
+	DrawText("Burbuja", centro - 90, 170, 22, WHITE);
+	DrawText("Merge sort", centro + 100, 170, 22, WHITE);
+	int i = 0;
+	while (i < 4) { 
+		int y = 215 + i * 45;
+		DrawText(TextFormat("%d", resultado.tamanios[i]), centro - 230, y, 22, YELLOW);
+		DrawText(TextFormat("%.2f", resultado.bubble[i]), centro - 90, y, 22, WHITE);
+		DrawText(TextFormat("%.2f", resultado.merge[i]), centro + 100, y, 22, WHITE);
+		i++;
+	}
+	
+	textoCentrado("La tabla tambien se guardo en tiempos.txt", 430, 20, SKYBLUE);
+	textoCentrado("ESC: volver al menu", 480, 20, WHITE);
 }

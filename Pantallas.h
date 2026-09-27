@@ -3,6 +3,7 @@
 
 #include "raylib.h"
 #include "Puntajes.h"
+#include "Medicion.h"
 
 const Rectangle BtnRetroceder = { 150, 652, 120, 36 }; // botones que pueden ser usados con el mouse
 const Rectangle BtnReproducir = { 290, 652, 120, 36 };
@@ -20,5 +21,6 @@ bool botonPresionado(Rectangle btn);
 void dibujarControlesRepeticion(int paso, int total, const char* movimiento, bool reproduciendo); // recordatorio: usa varias veces dibujarBoton
 
 void dibujarPantallaPeticionNombre(const char* nombre, int puntaje);// solo se activa cuando el jugador está dentro del top 10 y le pido su nombre para guardarlo en el txt de top 10
-void dibujarPantallaTop(const ListaPuntajes& lista, int algoritmo);//Esta es la pantalla de mejores puntajes ordenada
+void dibujarPantallaTopPuntajes(const ListaPuntajes& lista, int algoritmo, double microsegundos);
+void dibujarPantallaMedicion(const ResultadoMedicion& resultado);// 
 #endif
