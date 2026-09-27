@@ -25,5 +25,7 @@ void dibujarEventos(int multiplicador, Evento proximo, float tiempoJuego, const 
 void dibujarControles();
 
 void dibujarJuego(const Juego& juego); // aqui se dibuja todo en general osea el tablero , la pieza bajando , el hold y demás
+void dibujarCeldasGuardadas(const int celdas[FILAS][COLUMNAS]);// esto es para la repetición , dibuja el tablero tal como estaba en un nodo del historial
+void dibujarEstado(const Estado& e);// dibuja todo el estado de un nodo del historial , osea el tablero , la pieza , el hold y las siguientes piezas
 
 #endif

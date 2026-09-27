@@ -149,3 +149,25 @@ void dibujarJuego(const Juego& juego) {
 		DrawText("Mueve la pieza para seguir jugando", MARGEN_X, 672, 16, LIGHTGRAY);
 	}
 }
+
+
+void dibujarCeldasGuardadas(const int celdas[FILAS][COLUMNAS]) {// dibuja el tablero tal como estaba en un nodo del historial que se pasa por parametro
+	int i = 0;
+	while (i < FILAS) {
+		int j = 0;
+		while (j < COLUMNAS) {
+			dibujarCelda(i, j, colorCelda(celdas[i][j]), 0);
+			j++;
+		}
+		i++;
+	}
+	DrawRectangleLines(MARGEN_X - 1, MARGEN_Y - 1, COLUMNAS * TAM_CELDA + 2, FILAS * TAM_CELDA + 2, GRAY);
+}// solo dibuja el tablero
+
+void dibujarEstado(const Estado& estado) {// dibuja todo el estado de un nodo del historial , osea el tablero , la pieza , el hold y las siguientes piezas
+	dibujarCeldasGuardadas(estado.celdas);
+	dibujarPieza(estado.pieza, 0); // en el replay la pieza no lleva animacion de caida
+	dibujarHold(estado.hold);
+	dibujarSiguientes(estado.siguientes[0], estado.siguientes[1], estado.siguientes[2]);
+	dibujarDatos(estado.puntaje, estado.lineas, estado.nivel);
+}

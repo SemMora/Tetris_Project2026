@@ -6,7 +6,9 @@
 #include <cstdlib>
 #include <ctime>
 
-enum Pantalla { PANTALLA_INICIO, PANTALLA_JUEGO, PANTALLA_PAUSA, PANTALLA_FIN }; // enum de pantallas para saber en que pantalla estoy y dibujar lo que corresponde a cada una
+enum Pantalla { PANTALLA_INICIO, PANTALLA_JUEGO, PANTALLA_PAUSA, PANTALLA_FIN, PANTALLA_REPETICION }; // estas son todas las pantallas por las que puede pasar el programa
+
+const float PASO_REPLAY = 0.08f; // cada cuantos segundos avanza un paso el replay cuando se reproduce solo
 
 bool teclaConRepeticion(int tecla, float& acumulado, float deltaTime, float intervalo) { // funcion para poder dejar estripada la tecla y que siga acumulando y haciendo sus eventos
 	if (IsKeyPressed(tecla)) {
@@ -22,7 +24,6 @@ bool teclaConRepeticion(int tecla, float& acumulado, float deltaTime, float inte
 	}
 	return false;
 }
-
 
 void leerControles(Juego& juego, float deltaTime) {
 	static float tiempoIzq = 0;
@@ -54,6 +55,36 @@ void leerControles(Juego& juego, float deltaTime) {
 	}
 }
 
+void controlarRepeticion(Historial& historial, bool& reproduciendo, float& tiempoReplay, float deltaTime) {
+	static float tiempoIzq = 0;
+	static float tiempoDer = 0;
+	
+	if (IsKeyPressed(KEY_SPACE) || botonPresionado(BtnReproducir)) { // si se presiona espacio o el boton de reproducir/pausar entonces se cambia el estado de reproduccion
+		if (!reproduciendo && historial.getPosicion() == historial.tamanio()) { // si ya llegó al final y se le da reproducir entonces empieza otra vez desde el inicio
+			historial.irAlPrimero();
+		}
+		reproduciendo = !reproduciendo;
+	}
+	if (teclaConRepeticion(KEY_LEFT, tiempoIzq, deltaTime, 0.05f) || botonPresionado(BtnRetroceder)) {
+		historial.retroceder();
+		reproduciendo = false; //si el jugador retrocede de forma manual entonces se detiene la reproducción automática
+	}
+	if (teclaConRepeticion(KEY_RIGHT, tiempoDer, deltaTime, 0.05f) || botonPresionado(BtnAvanzar)) {
+		historial.avanzar();
+		reproduciendo = false;
+	}
+	
+	if (reproduciendo) {
+		tiempoReplay += deltaTime;
+		if (tiempoReplay >= PASO_REPLAY) {// solo va a reproducirse si ya pasó el tiempo necesario para avanzar un paso
+			tiempoReplay = 0;
+			if (!historial.avanzar()) {
+				reproduciendo = false;
+			}
+		}
+	}
+}
+
 int main() {
 	srand((unsigned)time(nullptr)); // se toman numeros aleatorios siempre para que al iniciar el juego nunca empiece de la misma forma
 	
@@ -64,6 +95,8 @@ int main() {
 	Juego juego;
 	Pantalla pantalla = PANTALLA_INICIO;
 	bool salir = false;
+	bool reproduciendo = false; // esto es para saber si la repetición del historial se está reproduciendo sola o no
+	float tiempoReplay = 0;
 	
 	while (!WindowShouldClose() && !salir) {
 		float deltaTime = GetFrameTime(); // Por aquello el tiempo delta es el tiempo que ocurre entre cada frame 
@@ -96,12 +129,23 @@ int main() {
 				pantalla = PANTALLA_INICIO;
 			}
 		} else if (pantalla == PANTALLA_FIN) {
+			if (IsKeyPressed(KEY_R)) {
+				juego.getHistorial().irAlPrimero(); 
+				reproduciendo = true;
+				tiempoReplay = 0;
+				pantalla = PANTALLA_REPETICION;
+			}
 			if (IsKeyPressed(KEY_ENTER)) {
 				juego.nuevaPartida();
 				pantalla = PANTALLA_JUEGO;
 			}
 			if (IsKeyPressed(KEY_ESCAPE)) {
 				pantalla = PANTALLA_INICIO;
+			}
+		} else if (pantalla == PANTALLA_REPETICION) {
+			controlarRepeticion(juego.getHistorial(), reproduciendo, tiempoReplay, deltaTime);
+			if (IsKeyPressed(KEY_ESCAPE)) {
+				pantalla = PANTALLA_FIN;
 			}
 		}
 		
@@ -119,6 +163,11 @@ int main() {
 		} else if (pantalla == PANTALLA_FIN) {
 			dibujarJuego(juego);
 			dibujarPantallaFin(juego.getPuntaje());
+		} else if (pantalla == PANTALLA_REPETICION) { // aqui uso otros metodos separados para dibujar el historial y los controles de la repetición
+			Historial& historial = juego.getHistorial();
+			const Estado& estado = historial.estadoActual();
+			dibujarEstado(estado);
+			dibujarControlesRepeticion(historial.getPosicion(), historial.tamanio(), nombreMovimiento(estado.movimiento), reproduciendo);
 		}
 		
 		EndDrawing();
