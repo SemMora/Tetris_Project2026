@@ -3,6 +3,7 @@
 
 const float INTERVALO_MINIMO = 0.1f;  // la caída nunca va a ser más rápida que esto
 const float DURACION_MENSAJE = 2.5f;
+const float DURACION_ANIMACION = 0.4f; // segundos que parpadean las filas completas antes de borrarse
 
 Juego::Juego() {
 	nuevaPartida();
@@ -23,9 +24,11 @@ void Juego::nuevaPartida() { // practicamente limpia todo para una nueva partida
 	proximaEsBomba = false;
 	terminado = false;
 	navegando = false;
+	animando = false;
 	intervaloCaida = 0.8f; // tiempo de intervalo en segundos entre cada caída de la pieza
 	tiempoCaida = 0;
 	tiempoJuego = 0;
+	tiempoAnimacion = 0;
 	mensaje = nullptr;
 	tiempoMensaje = 0;
 	
@@ -73,16 +76,25 @@ void Juego::actualizar(float deltaTime) {
 		tiempoMensaje -= deltaTime;
 	}
 	
-	if (terminado || navegando) {
+	if (terminado || navegando) { // si se está deshaciendo o rehaciendo la pieza no cae
+		return;
+	}
+	
+	if (animando) { // hasta que se acabe la animación yo elimino las filas completas 
+		tiempoAnimacion += deltaTime;
+		if (tiempoAnimacion >= DURACION_ANIMACION) {
+			animando = false;
+			terminarColocacion();
+		}
 		return;
 	}
 	
 	tiempoJuego += deltaTime;
-	while (eventos.hayEventoListo(tiempoJuego)) { 
+	while (eventos.hayEventoListo(tiempoJuego)) { // saco y aplico todos los eventos a los que ya les toca usarse
 		aplicarEvento(eventos.sacar());
 	}
 	
-	tiempoCaida += deltaTime;   
+	tiempoCaida += deltaTime;
 	if (tiempoCaida >= intervaloCaida) { // en resumen si ya pasó el tiempo necesario para el intervalo entonces se baja la pieza una fila más abajo
 		bajar();
 	}
@@ -213,18 +225,23 @@ void Juego::rehacer() {
 }
 
 void Juego::fijarPieza() {
-	if (actual.bomba) { // la bomba explota no tiene que fijarse en el tablero
+	if (actual.bomba) { // la bomba no se queda pegada en el tablero , explota
 		explotarBomba();
 	} else {
 		int i = 0;
 		while (i < 4) {
 			int fila, columna;
-			posicionBloque(actual, i, fila, columna); // busco la posicion del bloque 
+			posicionBloque(actual, i, fila, columna); // busco la posicion del bloque
 			tablero.ponerCelda(fila, columna, actual.tipo + 1);// y pongo las celdas en ese mismo lugar
 			i++;
 		}
 	}
-	terminarColocacion();
+	if (tablero.hayFilasCompletas()) { // si se completó alguna fila primero se hace el parpadeo y ya en actualizar se borra
+		animando = true;
+		tiempoAnimacion = 0;
+	} else {
+		terminarColocacion();
+	}
 }
 
 void Juego::explotarBomba() {
@@ -322,4 +339,32 @@ const char* Juego::getMensaje() const {
 		return mensaje;
 	}
 	return nullptr;
+}
+
+
+bool Juego::parpadeoEncendido() const {
+	if (!animando) {
+		return false;
+	}
+	int parpadeos = (int)(tiempoAnimacion / 0.1f); // como el tiempo va avanzando cada 0.1 va a ir parpaeando
+	return parpadeos % 2 == 0; //solo durante los parpadeos pares se pone blanco y en los impares no , esto para simular el parpadeo
+	
+}
+
+int Juego::getDesplazamientoCaida() const {// aquí es donde calculo cuantos pixeles extra se van a dibujar para que la animacion de caida sea suave
+	if (terminado || navegando || animando) {
+		return 0;
+	}
+	Pieza prueba = actual;
+	prueba.fila++;
+	if (!cabe(prueba)) {
+		return 0; // si ya no puede bajar no la muevo
+	}
+
+	float proporcion = tiempoCaida / intervaloCaida; // ejemplo: si el tiempoCaida es 0.4s y el intervaloCaida siempre es 0.8s, la proporcion es o.5 y la pieza se dibuja a la mitad de la celda más abajo 
+	if (proporcion > 1) {
+		proporcion = 1;
+	}
+	return (int)(proporcion * TAM_CELDA); 
+	
 }

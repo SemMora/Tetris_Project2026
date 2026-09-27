@@ -2,9 +2,11 @@
 #include "Constantes.h"
 #include "Juego.h"
 #include "Dibujo.h"
+#include "Pantallas.h"
 #include <cstdlib>
 #include <ctime>
 
+enum Pantalla { PANTALLA_INICIO, PANTALLA_JUEGO, PANTALLA_PAUSA, PANTALLA_FIN }; // enum de pantallas para saber en que pantalla estoy y dibujar lo que corresponde a cada una
 
 bool teclaConRepeticion(int tecla, float& acumulado, float deltaTime, float intervalo) { // funcion para poder dejar estripada la tecla y que siga acumulando y haciendo sus eventos
 	if (IsKeyPressed(tecla)) {
@@ -25,9 +27,9 @@ bool teclaConRepeticion(int tecla, float& acumulado, float deltaTime, float inte
 void leerControles(Juego& juego, float deltaTime) {
 	static float tiempoIzq = 0;
 	static float tiempoDer = 0;
-	static float tiempoAbajo = 0; // Son Static para que sin importar los frames o en donde se llamen siempre conserven su valor y así tener un tiempo acumulado por tecla
 	static float tiempoZ = 0;
 	static float tiempoX = 0;
+	static float tiempoAbajo = 0; // Son Static para que sin importar los frames o en donde se llamen siempre conserven su valor y así tener un tiempo acumulado por tecla
 	
 	if (teclaConRepeticion(KEY_LEFT, tiempoIzq, deltaTime, 0.1f)) {
 		juego.moverIzquierda();
@@ -43,12 +45,11 @@ void leerControles(Juego& juego, float deltaTime) {
 	}
 	if (IsKeyPressed(KEY_C)) { // y esta como solo se puede usar 1 vez por pieza no necesita repetirse varias veces con intervalos
 		juego.usarHold();
-	}
-	
-	if (teclaConRepeticion(KEY_Z, tiempoZ, deltaTime, 0.1f)) { 
+	} 
+	if (teclaConRepeticion(KEY_Z, tiempoZ, deltaTime, 0.1f)) {
 		juego.deshacer();
 	}
-	if (teclaConRepeticion(KEY_X, tiempoX, deltaTime, 0.1f)) { 
+	if (teclaConRepeticion(KEY_X, tiempoX, deltaTime, 0.1f)) {
 		juego.rehacer();
 	}
 }
@@ -57,26 +58,67 @@ int main() {
 	srand((unsigned)time(nullptr)); // se toman numeros aleatorios siempre para que al iniciar el juego nunca empiece de la misma forma
 	
 	InitWindow(ANCHO_VENTANA, ALTO_VENTANA, "Tetris");
+	SetExitKey(KEY_NULL); // así solo cuando yo quiera cerrar la ventana se cierra y no cuando se presiona ESC
 	SetTargetFPS(60);
 	
 	Juego juego;
+	Pantalla pantalla = PANTALLA_INICIO;
+	bool salir = false;
 	
-	while (!WindowShouldClose()) {
+	while (!WindowShouldClose() && !salir) {
 		float deltaTime = GetFrameTime(); // Por aquello el tiempo delta es el tiempo que ocurre entre cada frame 
 		
-		if (!juego.estaTerminado()) {
-			leerControles(juego, deltaTime);
+		// primero reviso las teclas y la logica según la pantalla en la que esté
+		if (pantalla == PANTALLA_INICIO) {
+			if (IsKeyPressed(KEY_ENTER)) {
+				juego.nuevaPartida();
+				pantalla = PANTALLA_JUEGO;
+			}
+			if (IsKeyPressed(KEY_ESCAPE)) {
+				salir = true;
+			}
+		} else if (pantalla == PANTALLA_JUEGO) {
+			if (!juego.estaAnimando()) { // mientras hago la animación de parpadeo no dejaré que se puedan leer los controles
+				leerControles(juego, deltaTime);
+			}
 			juego.actualizar(deltaTime);
-		} else if (IsKeyPressed(KEY_ENTER)) {
-			juego.nuevaPartida();
+			if (IsKeyPressed(KEY_P)) {
+				pantalla = PANTALLA_PAUSA;
+			}
+			if (juego.estaTerminado()) {
+				pantalla = PANTALLA_FIN;
+			}
+		} else if (pantalla == PANTALLA_PAUSA) { // durante la pausa no se llama a actualizar , por eso todo se queda quieto
+			if (IsKeyPressed(KEY_P)) {
+				pantalla = PANTALLA_JUEGO;
+			}
+			if (IsKeyPressed(KEY_ESCAPE)) {
+				pantalla = PANTALLA_INICIO;
+			}
+		} else if (pantalla == PANTALLA_FIN) {
+			if (IsKeyPressed(KEY_ENTER)) {
+				juego.nuevaPartida();
+				pantalla = PANTALLA_JUEGO;
+			}
+			if (IsKeyPressed(KEY_ESCAPE)) {
+				pantalla = PANTALLA_INICIO;
+			}
 		}
 		
 		BeginDrawing(); // función para preparar a raylib a dibujar
 		ClearBackground(BLACK);
 		
-		dibujarJuego(juego);
-		if (juego.estaTerminado()) {
-			DrawText("Fin Del Juego Presiona ENTER Para Volver a Jugar", MARGEN_X - 20, 660, 20, RED);
+		// y luego dibujo lo que corresponde a la pantalla , la pausa y el fin se dibujan encima del juego
+		if (pantalla == PANTALLA_INICIO) {
+			dibujarPantallaInicio();
+		} else if (pantalla == PANTALLA_JUEGO) {
+			dibujarJuego(juego);
+		} else if (pantalla == PANTALLA_PAUSA) {
+			dibujarJuego(juego);
+			dibujarPantallaPausa();
+		} else if (pantalla == PANTALLA_FIN) {
+			dibujarJuego(juego);
+			dibujarPantallaFin(juego.getPuntaje());
 		}
 		
 		EndDrawing();

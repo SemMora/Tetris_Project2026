@@ -25,18 +25,23 @@ Color colorCelda(int valor) {
 	return colorPieza(valor - 1);
 }
 
-void dibujarCelda(int fila, int columna, Color color) {
+void dibujarCelda(int fila, int columna, Color color, int desplazamientoY) {
 	int x = MARGEN_X + columna * TAM_CELDA;//ejemplo: si la columna es 0 entonces x = 200 + 0 * 30 = 200
-	int y = MARGEN_Y + fila * TAM_CELDA;// ejemplo: si la fila es 0 entonces y = 40 + 0 * 30 = 40
+	int y = MARGEN_Y + fila * TAM_CELDA + desplazamientoY;// ejemplo: si la fila es 0 entonces y = 40 + 0 * 30 = 40 , y el desplazamiento es lo que baja de más la pieza en la animacion
 	DrawRectangle(x + 1, y + 1, TAM_CELDA - 2, TAM_CELDA - 2, color);// puse +1 para dejar un borde de un pixel y -2 para que no se desborde la celda
 }
 
-void dibujarTablero(const Tablero& tablero) {
+void dibujarTablero(const Tablero& tablero, bool resaltarCompletas) {
 	int i = 0;
 	while (i < FILAS) {
+		bool blanca = resaltarCompletas && tablero.filaCompleta(i); //aquí valido si la fila está completa y si hay que resaltarla para el parpadeo
 		int j = 0;
 		while (j < COLUMNAS) {
-			dibujarCelda(i, j, colorCelda(tablero.obtenerCelda(i, j)));
+			if (blanca) {
+				dibujarCelda(i, j, WHITE, 0);
+			} else {
+				dibujarCelda(i, j, colorCelda(tablero.obtenerCelda(i, j)), 0);
+			}
 			j++;
 		}
 		i++;
@@ -44,7 +49,7 @@ void dibujarTablero(const Tablero& tablero) {
 	DrawRectangleLines(MARGEN_X - 1, MARGEN_Y - 1, COLUMNAS * TAM_CELDA + 2, FILAS * TAM_CELDA + 2, GRAY);// esto dibuja un borde alrededor del tablero
 }
 
-void dibujarPieza(const Pieza& pieza) { // dibuja una pieza en el tablero
+void dibujarPieza(const Pieza& pieza, int desplazamientoY) { // dibuja una pieza en el tablero
 	if (pieza.tipo < 0) {
 		return;
 	}
@@ -52,10 +57,10 @@ void dibujarPieza(const Pieza& pieza) { // dibuja una pieza en el tablero
 	while (i < 4) {// cada pieza tiene 4 bloques
 		int fila, columna;
 		posicionBloque(pieza, i, fila, columna);
-		if (pieza.bomba) { 
-			dibujarCelda(fila, columna, WHITE);
+		if (pieza.bomba) { //como la bomba es especial la pinto de blanco
+			dibujarCelda(fila, columna, WHITE, desplazamientoY);
 		} else {
-			dibujarCelda(fila, columna, colorPieza(pieza.tipo));
+			dibujarCelda(fila, columna, colorPieza(pieza.tipo), desplazamientoY);
 		}
 		i++; 
 	}
@@ -100,23 +105,22 @@ void dibujarDatos(int puntaje, int lineas, int nivel) {
 	DrawText(TextFormat("%d", nivel), 20, 355, 30, YELLOW);
 }
 
-void dibujarEventos(int multiplicador, Evento proximo, float tiempoJuego, const char* mensaje) {
+void dibujarEventos(int multiplicador, Evento proximo, float tiempoJuego, const char* mensaje) { // aquí dibujo todos los eventos que se estén dando en el momento
 	if (multiplicador > 1) { 
 		DrawText("PUNTOS x2", 20, 400, 20, GOLD);
 	}
-	if (proximo.tipo != -1) { 
+	if (proximo.tipo != -1) { // aqui dibujo el proximo evento que se usará y cuanto tiempo falta para que se use
 		int segundos = (int)(proximo.momento - tiempoJuego) + 1;
 		DrawText("PROXIMO EVENTO", 20, 440, 16, LIGHTGRAY);
 		DrawText(nombreEvento(proximo.tipo), 20, 460, 16, SKYBLUE);
 		DrawText(TextFormat("en %d s", segundos), 20, 480, 16, LIGHTGRAY);
 	}
-	if (mensaje != nullptr) { 
+	if (mensaje != nullptr) { // el aviso del evento sale centrado arriba del tablero
 		int centroTablero = MARGEN_X + COLUMNAS * TAM_CELDA / 2;
 		int ancho = MeasureText(mensaje, 20);
 		DrawText(mensaje, centroTablero - ancho / 2, 12, 20, GOLD);
 	}
 }
-
 
 void dibujarControles() {
 	int y = 380;
@@ -127,19 +131,20 @@ void dibujarControles() {
 	DrawText("Tecla C: para hold", PANEL_DERECHO, y + 90, 16, LIGHTGRAY);
 	DrawText("Tecla Z: para deshacer", PANEL_DERECHO, y + 110, 16, LIGHTGRAY);
 	DrawText("Tecla X: para rehacer", PANEL_DERECHO, y + 130, 16, LIGHTGRAY);
+	DrawText("Tecla P: para pausar", PANEL_DERECHO, y + 150, 16, LIGHTGRAY);
 }
 
-void dibujarJuego(const Juego& juego) {// esto se ejecuta en cada frame para dibujar todo el juego
-	dibujarTablero(juego.getTablero());
-	if (!juego.estaTerminado()) {//
-		dibujarPieza(juego.getPieza());
-	}// si el juego ya está terminado entonces no hay que dibujar la pieza que está bajando
+void dibujarJuego(const Juego& juego) {
+	dibujarTablero(juego.getTablero(), juego.parpadeoEncendido());
+	if (!juego.estaTerminado() && !juego.estaAnimando()) {//
+		dibujarPieza(juego.getPieza(), juego.getDesplazamientoCaida());
+	}// si el juego ya está terminado o se están limpiando lineas entonces no hay que dibujar la pieza que está bajando
 	dibujarHold(juego.getHold());
 	dibujarSiguientes(juego.getSiguiente(0), juego.getSiguiente(1), juego.getSiguiente(2));
 	dibujarDatos(juego.getPuntaje(), juego.getLineas(), juego.getNivel());
 	dibujarEventos(juego.getMultiplicador(), juego.getProximoEvento(), juego.getTiempoJuego(), juego.getMensaje());
 	dibujarControles();
-	if (juego.estaNavegando()) { //esto dibuja mensaje de historial cuando se está deshaciendo o rehaciendo movimientos
+	if (juego.estaNavegando()) { // mientras se deshace o rehace se muestra en que paso del historial vamos
 		DrawText(TextFormat("HISTORIAL: paso %d de %d", juego.getPaso(), juego.getTotalPasos()), MARGEN_X, 648, 20, SKYBLUE);
 		DrawText("Mueve la pieza para seguir jugando", MARGEN_X, 672, 16, LIGHTGRAY);
 	}

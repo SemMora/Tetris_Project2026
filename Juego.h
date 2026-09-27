@@ -24,11 +24,13 @@ private:
 	bool holdUsado;       
 	bool proximaEsBomba;   // si es true entonces la proxima pieza será una bomba
 	bool terminado;
-	bool navegando;       
+	bool navegando;  
+	bool animando;         // se pone en true mientras parpadean las filas completas antes de borrarse
 	
 	float intervaloCaida;  // segundos entre cada bajada automatica
 	float tiempoCaida;     // tiempo que paso desde la ultima bajada
 	float tiempoJuego;     // el reloj de la partida , con este se sabe cuando se dispara cada evento
+	float tiempoAnimacion; // cuanto tiempo lleva el parpadeo de las filas
 	
 	const char* mensaje;   // el aviso del ultimo evento que se usó
 	float tiempoMensaje;   
@@ -67,6 +69,9 @@ public:
 	int getMultiplicador() const { return multiplicador; }
 	bool estaTerminado() const { return terminado; }
 	bool estaNavegando() const { return navegando; }
+	bool estaAnimando() const { return animando; }
+	bool parpadeoEncendido() const;      // para saber si en este momento las filas completas se pintan blancas
+	int getDesplazamientoCaida() const;  // devuelve cuantos pixeles de más se van a dibujar para que la animación de caída se vea suave
 	int getPaso() const { return historial.getPosicion(); }
 	int getTotalPasos() const { return historial.tamanio(); }
 	Historial& getHistorial() { return historial; }
