@@ -99,7 +99,7 @@ void dibujarPantallaTopPuntajes(const ListaPuntajes& lista, int algoritmo, doubl
 	}
 	
 	textoCentrado(TextFormat("Ordenado con: %s", nombreAlgoritmo(algoritmo)), 500, 20, SKYBLUE);
-	textoCentrado(TextFormat("Tardó %.2f microsegundos", microsegundos), 530, 20, SKYBLUE);
+	textoCentrado(TextFormat("Tardo %.2f microsegundos", microsegundos), 530, 20, SKYBLUE);
 	textoCentrado("1: Burbuja     2: Merge sort", 580, 20, WHITE);
 	textoCentrado("ESC: volver al menu", 615, 20, WHITE);
 }
