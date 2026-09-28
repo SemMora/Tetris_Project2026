@@ -1,3 +1,5 @@
-500 Oscar
-100 SemMora
-0 Sem
+7300 Pablo
+500 Carlos
+200 Luis
+100 Oscar
+100 Sem
